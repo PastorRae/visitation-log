@@ -1,0 +1,15 @@
+{
+  "name": "visitation-log",
+  "version": "1.0.0",
+  "description": "The Mobile Visitation Log is a critical component of PastoralCare Pro designed specifically for pastors to assist with tracking visits, follow-up management and reporting while supporting offline functionality.",
+  "main": "index.js",
+  "scripts": {
+    "test": "start visitation-log"
+  },
+  "keywords": [
+    "vsitation",
+    "log"
+  ],
+  "author": "Pastor Henry",
+  "license": "ISC"
+}
