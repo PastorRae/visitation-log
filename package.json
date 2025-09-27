@@ -1,15 +1,41 @@
 {
   "name": "visitation-log",
-  "version": "1.0.0",
-  "description": "The Mobile Visitation Log is a critical component of PastoralCare Pro designed specifically for pastors to assist with tracking visits, follow-up management and reporting while supporting offline functionality.",
+  "version": "0.1.0",
+  "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "start visitation-log"
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "echo \"add your linter\"",
+    "test": "echo \"add your tests\""
   },
-  "keywords": [
-    "vsitation",
-    "log"
-  ],
-  "author": "Pastor Henry",
-  "license": "ISC"
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-navigation/bottom-tabs": "^6.6.0",
+    "@react-navigation/native": "^6.1.17",
+    "dayjs": "^1.11.11",
+    "expo": "^51.0.0",
+    "expo-location": "~17.0.1",
+    "expo-local-authentication": "~14.0.1",
+    "expo-network": "~6.0.1",
+    "expo-secure-store": "~13.0.1",
+    "expo-sqlite": "~14.0.1",
+    "react": "18.2.0",
+    "react-native": "0.74.1",
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-reanimated": "~3.10.1",
+    "react-native-safe-area-context": "4.10.5",
+    "react-native-screens": "~3.31.1",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.2.66",
+    "@types/react-native": "~0.73.0",
+    "babel-preset-expo": "^11.0.10",
+    "typescript": "~5.3.3"
+  }
 }

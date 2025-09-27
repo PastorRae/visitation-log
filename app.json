@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Visitation Dashboard",
+    "slug": "visitation-dashboard",
+    "scheme": "visitation",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "org.pastoralcarepro.visitation",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Allow location to capture GPS during visits."
+      },
+      "deploymentTarget": "12.0"
+    },
+    "android": {
+      "package": "org.pastoralcarepro.visitation",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": ["ACCESS_FINE_LOCATION"],
+      "minSdkVersion": 26
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
