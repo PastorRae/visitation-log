@@ -107,7 +107,7 @@ export async function insertVisit(v: VisitRecord) {
   );
 }
 
-export async function getTodayVisits(churchId?: string) {
+export async function getTodayVisits(churchId?: string): Promise<VisitRecord[]> {
   const d = getDb();
   const start = dayjs().startOf("day").valueOf();
   const end = dayjs().endOf("day").valueOf();
@@ -117,11 +117,14 @@ export async function getTodayVisits(churchId?: string) {
     where += " AND (church_id = ? OR church_id IS NULL)";
     params.push(churchId);
   }
-  const result = await d.getAllAsync(`SELECT * FROM visits WHERE ${where} ORDER BY visit_date DESC`, ...params);
+  const result = await d.getAllAsync<VisitRecord>(
+    `SELECT * FROM visits WHERE ${where} ORDER BY visit_date DESC`,
+    ...params
+  );
   return result;
 }
 
-export async function getRecentVisits(days = 7, churchId?: string) {
+export async function getRecentVisits(days = 7, churchId?: string): Promise<VisitRecord[]> {
   const d = getDb();
   const start = dayjs().subtract(days, "day").startOf("day").valueOf();
   const params: any[] = [start];
@@ -130,11 +133,14 @@ export async function getRecentVisits(days = 7, churchId?: string) {
     where += " AND (church_id = ? OR church_id IS NULL)";
     params.push(churchId);
   }
-  const result = await d.getAllAsync(`SELECT * FROM visits WHERE ${where} ORDER BY visit_date DESC`, ...params);
+  const result = await d.getAllAsync<VisitRecord>(
+    `SELECT * FROM visits WHERE ${where} ORDER BY visit_date DESC`,
+    ...params
+  );
   return result;
 }
 
-export async function countOverdueFollowups(now = Date.now(), churchId?: string) {
+export async function countOverdueFollowups(now = Date.now(), churchId?: string): Promise<number> {
   const d = getDb();
   let where = "due_date < ? AND status != 'done'";
   const params: any[] = [now];
@@ -142,8 +148,11 @@ export async function countOverdueFollowups(now = Date.now(), churchId?: string)
     where += " AND visit_id IN (SELECT id FROM visits WHERE church_id = ?)";
     params.push(churchId);
   }
-  const row = await d.getFirstAsync(`SELECT COUNT(*) as c FROM followups WHERE ${where}`, ...params);
-  return (row?.c as number) ?? 0;
+  const row = await d.getFirstAsync<{ c: number }>(
+    `SELECT COUNT(*) as c FROM followups WHERE ${where}`,
+    ...params
+  );
+  return row?.c ?? 0;
 }
 
 export async function getUnsynced() {

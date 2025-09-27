@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import * as Network from "expo-network";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -10,6 +10,7 @@ import { runAutoSync } from "./src/services/sync";
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const lastOnline = useRef<boolean | null>(null);
   const biometricsEnabled = useAppStore((s: AppState) => s.biometricsEnabled);
   const setOnline = useAppStore((s: AppState) => s.setOnline);
   const setSynced = useAppStore((s: AppState) => s.setSynced);
@@ -29,18 +30,31 @@ export default function App() {
       setOnline(!!net.isConnected && !!net.isInternetReachable);
       setReady(true);
     })();
-  }, []);
+  }, [biometricsEnabled, setOnline]);
 
   useEffect(() => {
-    const sub = Network.addNetworkStateListener((s: Network.NetworkState) => {
-      const online = !!s.isConnected && !!s.isInternetReachable;
-      setOnline(online);
-      if (online) {
-        runAutoSync().finally(() => setSynced(true));
-      }
-    });
-    return () => sub && (sub as any).remove && (sub as any).remove();
-  }, []);
+    let cancelled = false;
+
+    const poll = async () => {
+  const state = await Network.getNetworkStateAsync();
+  const online = !!state.isConnected && !!state.isInternetReachable;
+  if (cancelled) return;
+  const previous = lastOnline.current;
+  lastOnline.current = online;
+  setOnline(online);
+  if (online && previous !== true) {
+    runAutoSync().finally(() => setSynced(true));
+  }
+    };
+
+    poll();
+    const interval = setInterval(poll, 15000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [setOnline, setSynced]);
 
   if (!ready) {
     return (

@@ -3,6 +3,23 @@
 Executive Summary
 - Mobile-first, offline-first component for pastors in the East Caribbean Conference (Barbados) to track visits, follow-ups, and reporting. Supports iOS 12+, Android 8+, and PWA via Expo.
 
+Rationale
+- The Bible emphasizes the importance of pastoral care:  
+  And the word of the Lord came to me, saying, “Son of man, prophesy against the shepherds of Israel, prophesy and say to them, ‘Thus says the Lord God to the shepherds: “Woe to the shepherds of Israel who feed themselves! Should not the shepherds feed the flocks? You eat the fat and clothe yourselves with the wool; you slaughter the fatlings, but you do not feed the flock. The weak you have not strengthened, nor have you healed those who were sick, nor bound up the broken, nor brought back what was driven away, nor sought what was lost; but with force and cruelty you have ruled them. So they were scattered because there was no shepherd; and they became food for all the beasts of the field when they were scattered. My sheep wandered through all the mountains, and on every high hill; yes, My flock was scattered over the whole face of the earth, and no one was seeking or searching for them.” (Ezekiel 34:1-6)
+- Pastoral care is vital but pastors are often overburdened. This app empowers pastors to efficiently log and manage visits, ensuring better care for their congregations.
+- The East Caribbean Conference spans multiple islands with connectivity challenges. An offline-first approach ensures pastors can log visits anytime, syncing when online.
+- Mobile-first design caters to pastors who are frequently on the move, ensuring ease of use and accessibility.
+- Data privacy and security are paramount given the sensitive nature of pastoral visits. The app incorporates biometric authentication and secure data storage.
+
+### Pastoral Visitation Mandate
+- Beginning with the new district assignment in **October 2026**, pastors must systematically and compassionately visit every member and family in their care.
+- Core responsibilities supported by this workflow:
+  1. **Visit families**
+     - Confirm that every child in the household has been baptized.
+     - Recommend baptismal preparation for children ages 9–12 and spotlight this call to commitment on Decision Days.
+  2. **Reach out to and visit missing members** within family units to restore connection and spiritual support.
+- These priorities drive backlog grooming, progress dashboards, and follow-up alerts so shepherds can aggressively close visitation gaps.
+
 Architecture
 - Stack: Expo (React Native + Web), TypeScript, SQLite (expo-sqlite), Zustand (state), React Navigation, Expo Location/Network/LocalAuthentication/SecureStore.
 - Offline-first: All CRUD works offline. Records are queued (synced=0) and auto-synced when connectivity is restored. Manual sync supported.

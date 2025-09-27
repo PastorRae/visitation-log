@@ -3,11 +3,12 @@ import { View, Text, TextInput, ScrollView } from "react-native";
 import { getRecentVisits } from "../db/db";
 import { useAppStore, type AppState } from "../state/store";
 import VisitCard from "../components/VisitCard";
+import type { VisitRecord } from "../types";
 
 export default function VisitsScreen() {
   const churchId = useAppStore((s: AppState) => s.churchId);
   const [q, setQ] = useState("");
-  const [visits, setVisits] = useState<any[]>([]);
+  const [visits, setVisits] = useState<VisitRecord[]>([]);
 
   const refresh = async () => {
     const v = await getRecentVisits(30, churchId);
@@ -18,7 +19,7 @@ export default function VisitsScreen() {
     refresh();
   }, [churchId]);
 
-  const filtered = visits.filter((v) => {
+  const filtered = visits.filter((v: VisitRecord) => {
     const name = `${v.member_first ?? ""} ${v.member_last ?? ""}`.toLowerCase();
     return name.includes(q.toLowerCase());
   });
@@ -33,12 +34,12 @@ export default function VisitsScreen() {
           style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10 }}
         />
       </View>
-      <ScrollView style={{ paddingHorizontal: 12 }}>
-        {filtered.map((v: any) => (
-          <VisitCard key={v.id} v={v} />
-        ))}
-        {filtered.length === 0 && <Text style={{ padding: 12 }}>No visits found.</Text>}
-      </ScrollView>
+  <ScrollView style={{ paddingHorizontal: 12 }}>
+    {filtered.map((visit: VisitRecord) => (
+      <VisitCard key={visit.id} visit={visit} />
+    ))}
+    {filtered.length === 0 && <Text style={{ padding: 12 }}>No visits found.</Text>}
+  </ScrollView>
     </View>
   );
 }

@@ -1,18 +1,20 @@
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "target": "ES2019",
-    "lib": ["ES2020", "DOM"],
-    "jsx": "react-jsx",
-    "moduleResolution": "node",
     "allowJs": false,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
     "strict": true,
-    "noEmit": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "types": ["react", "react-native"],
+    "paths": {
+      "expo-module-scripts": ["node_modules/expo-module-scripts/index.js"],
+      "expo-module-scripts/*": ["node_modules/expo-module-scripts/*"],
+      "expo-module-scripts/tsconfig.base": [
+        "node_modules/expo-module-scripts/tsconfig.base.json"
+      ]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"]
-}
-}
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["App.tsx", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
 }

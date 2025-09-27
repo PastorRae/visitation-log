@@ -72,3 +72,10 @@ export interface Church {
   id: UUID;
   name: string;
 }
+
+export const CHURCH_IDS = {
+  MAIN: "slc-bb-main",
+  ALT: "slc-bb-alt"
+} as const;
+
+export type ChurchId = typeof CHURCH_IDS[keyof typeof CHURCH_IDS];

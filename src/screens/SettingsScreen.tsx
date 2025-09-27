@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Switch, Button, Linking } from "react-native";
 import { useAppStore, type AppState } from "../state/store";
 import { runManualSync } from "../services/sync";
+import { CHURCH_IDS } from "../types";
 
 export default function SettingsScreen() {
   const churchId = useAppStore((s: AppState) => s.churchId);
@@ -15,7 +16,12 @@ export default function SettingsScreen() {
       <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12 }}>Settings</Text>
 
       <Text style={{ marginBottom: 6 }}>Church</Text>
-      <Button title={`Current: ${churchId} (tap to switch)`} onPress={() => setChurch(churchId === "slc-bb-main" ? "slc-bb-alt" : "slc-bb-main")} />
+      <Button
+        title={`Current: ${churchId} (tap to switch)`}
+        onPress={() =>
+          setChurch(churchId === CHURCH_IDS.MAIN ? CHURCH_IDS.ALT : CHURCH_IDS.MAIN)
+        }
+      />
 
       <View style={{ height: 16 }} />
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>

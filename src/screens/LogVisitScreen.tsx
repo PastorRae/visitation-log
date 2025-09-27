@@ -40,12 +40,22 @@ function ChoiceRow<T extends string>({
 
 function genId() {
   // Prefer secure UUID if available
-  // @ts-ignore
-  if (globalThis?.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-  // Fallback
+  if (
+    typeof globalThis !== "undefined" &&
+    typeof globalThis.crypto === "object" &&
+    typeof globalThis.crypto.randomUUID === "function"
+  ) {
+    return globalThis.crypto.randomUUID();
+  }
+  // Fallback: Generate UUID v4 manually
+  // Explanation:
+  // - 16: Number of possible hex digits (0-15)
+  // - 0x3: Mask for bits 12-15 (used for 'y' placeholder)
+  // - 0x8: Sets the variant bits as per RFC4122
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0,
-      v = c === "x" ? r : (r & 0x3) | 0x8;
+    const r = (Math.random() * 16) | 0;
+    // For 'x', use random hex digit; for 'y', set variant bits
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }

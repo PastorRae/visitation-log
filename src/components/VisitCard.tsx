@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
+import type { VisitRecord } from "../types";
 
 function priorityColor(p?: string | null) {
   switch (p) {
@@ -18,8 +19,12 @@ function priorityColor(p?: string | null) {
   }
 }
 
-const VisitCard: React.FC<{ v: any }> = ({ v }) => {
-  const name = v.member_first ? `${v.member_first} ${v.member_last ?? ""}`.trim() : "Unknown member";
+type VisitCardProps = {
+  visit: VisitRecord;
+};
+
+const VisitCard: React.FC<VisitCardProps> = ({ visit }) => {
+  const name = visit.member_first ? `${visit.member_first} ${visit.member_last ?? ""}`.trim() : "Unknown member";
   return (
     <View
       style={{
@@ -33,13 +38,13 @@ const VisitCard: React.FC<{ v: any }> = ({ v }) => {
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={{ fontWeight: "600" }}>{name}</Text>
-        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: priorityColor(v.priority) }} />
+        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: priorityColor(visit.priority) }} />
       </View>
       <Text style={{ color: "#444", marginTop: 4 }}>
-        {v.visit_type} • {v.category}
+        {visit.visit_type} • {visit.category}
       </Text>
       <Text style={{ color: "#666", marginTop: 4 }} numberOfLines={2}>
-        {v.comments || "No comments"}
+        {visit.comments || "No comments"}
       </Text>
     </View>
   );
