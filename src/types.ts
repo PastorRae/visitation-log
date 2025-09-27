@@ -73,6 +73,40 @@ export interface Church {
   name: string;
 }
 
+export interface ChurchProfile {
+  id: UUID;
+  name: string;
+  pastor_name: string;
+  pastor_email: string;
+  community_service_hours_target: number;
+  small_groups_target: number;
+  digital_evangelism_reach_target: number;
+}
+
+export interface KpiDashboard {
+  id: UUID;
+  church_id: UUID;
+  community_service_hours: number;
+  small_groups_per_church: number;
+  digital_evangelism_reach: number;
+  updated_at: number;
+}
+
+export interface VisitLog {
+  id: UUID;
+  visit_id: UUID;
+  activity_metadata: {
+    church_id: UUID;
+    event_type: string;
+    timestamp: number;
+  };
+  notes: string;
+  metrics: {
+    patients_screened?: number;
+    small_groups_identified?: number;
+  };
+}
+
 export const CHURCH_IDS = {
   MAIN: "slc-bb-main",
   ALT: "slc-bb-alt"

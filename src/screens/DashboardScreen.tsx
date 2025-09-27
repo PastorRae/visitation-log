@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Button, ScrollView, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { countOverdueFollowups, getRecentVisits, getTodayVisits } from "../db/db";
+import { countOverdueFollowups, getRecentVisits, getTodayVisits, getDb } from "../db/db";
 import { useAppStore, type AppState } from "../state/store";
 import VisitCard from "../components/VisitCard";
-import type { VisitRecord } from "../types";
+import type { VisitRecord, KpiDashboard } from "../types";
 
 export default function DashboardScreen() {
   const nav = useNavigation<any>();
@@ -14,11 +14,18 @@ export default function DashboardScreen() {
   const [today, setToday] = useState<VisitRecord[]>([]);
   const [recent, setRecent] = useState<VisitRecord[]>([]);
   const [overdue, setOverdue] = useState(0);
+  const [kpiDashboard, setKpiDashboard] = useState<KpiDashboard | null>(null);
 
   const refresh = async () => {
+    const db = getDb();
     setToday(await getTodayVisits(churchId));
     setRecent(await getRecentVisits(7, churchId));
     setOverdue(await countOverdueFollowups(Date.now(), churchId));
+    const kpi = await db.getFirstAsync<KpiDashboard>(
+      "SELECT * FROM kpi_dashboards WHERE church_id = ?",
+      churchId
+    );
+    setKpiDashboard(kpi);
   };
 
   useEffect(() => {
@@ -65,8 +72,16 @@ export default function DashboardScreen() {
       </View>
 
       <View>
-        <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>Quick Stats</Text>
-        <Text>- Placeholder: visits this month, follow-up rate, trends charts (Phase 3)</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 8 }}>KPI Dashboard</Text>
+        {kpiDashboard ? (
+          <>
+            <Text>Community Service Hours: {kpiDashboard.community_service_hours}</Text>
+            <Text>Small Groups Per Church: {kpiDashboard.small_groups_per_church}</Text>
+            <Text>Digital Evangelism Reach: {kpiDashboard.digital_evangelism_reach}</Text>
+          </>
+        ) : (
+          <Text>No KPI data available.</Text>
+        )}
       </View>
 
       <View style={{ height: 24 }} />

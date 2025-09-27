@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from "react-native";
 import * as Location from "expo-location";
+import Voice from "@react-native-voice/voice";
 import { insertVisit } from "../db/db";
-import { VisitCategory, VisitType } from "../types";
+import { calculateKpis, checkKpiAlerts } from "../services/kpi";
+import { VisitCategory, VisitType, VisitLog } from "../types";
 import { useAppStore, type AppState } from "../state/store";
 
 function ChoiceRow<T extends string>({
@@ -67,6 +69,44 @@ export default function LogVisitScreen() {
   const [category, setCategory] = useState<VisitCategory>("pastoral");
   const [comments, setComments] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Voice.onSpeechError = (e) => {
+      setError(JSON.stringify(e.error));
+      setIsRecording(false);
+    };
+    Voice.onSpeechResults = (e) => {
+      if (e.value && e.value.length > 0) {
+        setComments((prev) => (prev ? `${prev} ${e.value![0]}` : e.value![0]));
+      }
+      setIsRecording(false);
+    };
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      await Voice.start("en-US");
+      setIsRecording(true);
+      setError("");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      await Voice.stop();
+      setIsRecording(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -99,6 +139,24 @@ export default function LogVisitScreen() {
         updated_at: now
       };
       await insertVisit(v);
+
+      const visitLog: VisitLog = {
+        id: genId(),
+        visit_id: v.id,
+        activity_metadata: {
+          church_id: churchId,
+          event_type: "Health Clinic", // This should be dynamic
+          timestamp: now,
+        },
+        notes: comments,
+        metrics: {
+          patients_screened: 20, // This should be dynamic
+        },
+      };
+
+      const kpiDashboard = await calculateKpis(visitLog);
+      await checkKpiAlerts(kpiDashboard);
+
       Alert.alert("Saved", "Visit saved locally. Will sync when online.");
       setMember("");
       setComments("");
@@ -153,7 +211,7 @@ export default function LogVisitScreen() {
 
       <Text style={{ fontSize: 16, fontWeight: "600", marginTop: 12, marginBottom: 8 }}>Comments</Text>
       <TextInput
-        placeholder="Notes (voice-to-text in Phase 2)"
+        placeholder="Type or use voice to add notes"
         value={comments}
         onChangeText={setComments}
         multiline
@@ -161,6 +219,22 @@ export default function LogVisitScreen() {
         style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, minHeight: 100 }}
         accessibilityLabel="Comments"
       />
+
+      <View style={{ flexDirection: "row", marginTop: 12, alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={isRecording ? stopRecording : startRecording}
+          style={{
+            backgroundColor: isRecording ? "#EF5350" : "#4CAF50",
+            padding: 12,
+            borderRadius: 8,
+            marginRight: 12
+          }}
+        >
+          <Text style={{ color: "white" }}>{isRecording ? "Stop" : "Start Voice Note"}</Text>
+        </TouchableOpacity>
+        {isRecording && <Text>Recording...</Text>}
+        {error && <Text style={{ color: "red" }}>{error}</Text>}
+      </View>
 
       <TouchableOpacity
         onPress={save}

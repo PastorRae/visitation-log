@@ -65,6 +65,33 @@ export async function initDb() {
       synced INTEGER DEFAULT 0,
       updated_at INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS church_profiles (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      pastor_name TEXT NOT NULL,
+      pastor_email TEXT NOT NULL,
+      community_service_hours_target INTEGER NOT NULL,
+      small_groups_target INTEGER NOT NULL,
+      digital_evangelism_reach_target INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS kpi_dashboards (
+      id TEXT PRIMARY KEY NOT NULL,
+      church_id TEXT NOT NULL,
+      community_service_hours INTEGER NOT NULL,
+      small_groups_per_church INTEGER NOT NULL,
+      digital_evangelism_reach INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS visit_logs (
+      id TEXT PRIMARY KEY NOT NULL,
+      visit_id TEXT NOT NULL,
+      activity_metadata TEXT NOT NULL,
+      notes TEXT NOT NULL,
+      metrics TEXT NOT NULL
+    );
   `);
   // Seed a default church for testing
   await db.runAsync(
