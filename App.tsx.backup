@@ -1,0 +1,136 @@
+import React, { useState } from "react";
+import { ActivityIndicator, View, Text, Platform } from "react-native";
+
+export default function App() {
+  console.log('App.tsx: Starting app on platform:', Platform.OS);
+  
+  // Simple loading state for initial test
+  const [ready, setReady] = useState(true);
+
+  if (!ready) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        <Text>Loading Visitation Dashboard...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      backgroundColor: '#f8f9fa',
+      padding: 20 
+    }}>
+      <Text style={{
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#2c3e50',
+        textAlign: 'center',
+        marginBottom: 10
+      }}>
+        📋 Visitation Dashboard 📋
+      </Text>
+      <Text style={{
+        fontSize: 16,
+        color: '#6c757d',
+        textAlign: 'center',
+        marginBottom: 20
+      }}>
+        Platform: {Platform.OS}
+      </Text>
+      <Text style={{
+        fontSize: 14,
+        color: '#28a745',
+        textAlign: 'center'
+      }}>
+        ✅ App.tsx is working! Ready to restore full functionality.
+      </Text>
+    </View>
+  );
+}
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await initDb();
+        
+        // Skip biometrics on web
+        if (biometricsEnabled && Platform.OS !== 'web') {
+          try {
+            const hasHardware = await LocalAuthentication.hasHardwareAsync();
+            if (hasHardware) {
+              await LocalAuthentication.authenticateAsync({
+                promptMessage: "Unlock Visitation Dashboard"
+              });
+            }
+          } catch (e) {
+            console.warn("Biometric authentication failed:", e);
+          }
+        }
+        
+        // Handle network state
+        try {
+          const net = await Network.getNetworkStateAsync();
+          setOnline(!!net.isConnected && !!net.isInternetReachable);
+        } catch (e) {
+          console.warn("Network state check failed:", e);
+          setOnline(true); // Assume online on web
+        }
+        
+        setReady(true);
+      } catch (error) {
+        console.error("App initialization error:", error);
+        setReady(true); // Set ready anyway to show error state
+      }
+    })();
+  }, [biometricsEnabled, setOnline]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const state = await Network.getNetworkStateAsync();
+        const online = !!state.isConnected && !!state.isInternetReachable;
+        if (cancelled) return;
+        const previous = lastOnline.current;
+        lastOnline.current = online;
+        setOnline(online);
+        if (online && previous !== true) {
+          runAutoSync().finally(() => setSynced(true));
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.warn("Network polling error:", e);
+          // Assume online on web or if network API fails
+          setOnline(true);
+        }
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 15000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [setOnline, setSynced]);
+
+  if (!ready) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer theme={DefaultTheme}>
+      <RootTabs />
+    </NavigationContainer>
+  );
+}

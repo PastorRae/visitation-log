@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet, Platform } from "react-native";
 import * as Location from "expo-location";
-import Voice from "@react-native-voice/voice";
 import { insertVisit } from "../db/db";
 import { calculateKpis, checkKpiAlerts } from "../services/kpi";
 import { VisitCategory, VisitType, VisitLog } from "../types";
 import { useAppStore, type AppState } from "../state/store";
+
+// Conditionally import Voice only for mobile platforms
+let Voice: any = null;
+if (Platform.OS !== 'web') {
+  Voice = require("@react-native-voice/voice").default;
+}
 
 function ChoiceRow<T extends string>({
   value,
@@ -73,23 +78,29 @@ export default function LogVisitScreen() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Voice.onSpeechError = (e) => {
-      setError(JSON.stringify(e.error));
-      setIsRecording(false);
-    };
-    Voice.onSpeechResults = (e) => {
-      if (e.value && e.value.length > 0) {
-        setComments((prev) => (prev ? `${prev} ${e.value![0]}` : e.value![0]));
-      }
-      setIsRecording(false);
-    };
+    if (Voice && Platform.OS !== 'web') {
+      Voice.onSpeechError = (e: any) => {
+        setError(JSON.stringify(e.error));
+        setIsRecording(false);
+      };
+      Voice.onSpeechResults = (e: any) => {
+        if (e.value && e.value.length > 0) {
+          setComments((prev) => (prev ? `${prev} ${e.value![0]}` : e.value![0]));
+        }
+        setIsRecording(false);
+      };
 
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
+      return () => {
+        Voice.destroy().then(Voice.removeAllListeners);
+      };
+    }
   }, []);
 
   const startRecording = async () => {
+    if (!Voice || Platform.OS === 'web') {
+      setError("Voice recording not available on web");
+      return;
+    }
     try {
       await Voice.start("en-US");
       setIsRecording(true);
@@ -100,6 +111,9 @@ export default function LogVisitScreen() {
   };
 
   const stopRecording = async () => {
+    if (!Voice || Platform.OS === 'web') {
+      return;
+    }
     try {
       await Voice.stop();
       setIsRecording(false);
@@ -140,22 +154,27 @@ export default function LogVisitScreen() {
       };
       await insertVisit(v);
 
-      const visitLog: VisitLog = {
-        id: genId(),
-        visit_id: v.id,
-        activity_metadata: {
-          church_id: churchId,
-          event_type: "Health Clinic", // This should be dynamic
-          timestamp: now,
-        },
-        notes: comments,
-        metrics: {
-          patients_screened: 20, // This should be dynamic
-        },
-      };
+      // KPI calculation - temporarily disabled for web testing
+      try {
+        const visitLog: VisitLog = {
+          id: genId(),
+          visit_id: v.id,
+          activity_metadata: {
+            church_id: churchId,
+            event_type: "Health Clinic", // This should be dynamic
+            timestamp: now,
+          },
+          notes: comments,
+          metrics: {
+            patients_screened: 20, // This should be dynamic
+          },
+        };
 
-      const kpiDashboard = await calculateKpis(visitLog);
-      await checkKpiAlerts(kpiDashboard);
+        const kpiDashboard = await calculateKpis(visitLog);
+        await checkKpiAlerts(kpiDashboard);
+      } catch (e) {
+        console.warn("KPI calculation failed:", e);
+      }
 
       Alert.alert("Saved", "Visit saved locally. Will sync when online.");
       setMember("");
@@ -220,21 +239,31 @@ export default function LogVisitScreen() {
         accessibilityLabel="Comments"
       />
 
-      <View style={{ flexDirection: "row", marginTop: 12, alignItems: "center" }}>
-        <TouchableOpacity
-          onPress={isRecording ? stopRecording : startRecording}
-          style={{
-            backgroundColor: isRecording ? "#EF5350" : "#4CAF50",
-            padding: 12,
-            borderRadius: 8,
-            marginRight: 12
-          }}
-        >
-          <Text style={{ color: "white" }}>{isRecording ? "Stop" : "Start Voice Note"}</Text>
-        </TouchableOpacity>
-        {isRecording && <Text>Recording...</Text>}
-        {error && <Text style={{ color: "red" }}>{error}</Text>}
-      </View>
+      {Platform.OS !== 'web' && Voice && (
+        <View style={{ flexDirection: "row", marginTop: 12, alignItems: "center" }}>
+          <TouchableOpacity
+            onPress={isRecording ? stopRecording : startRecording}
+            style={{
+              backgroundColor: isRecording ? "#EF5350" : "#4CAF50",
+              padding: 12,
+              borderRadius: 8,
+              marginRight: 12
+            }}
+          >
+            <Text style={{ color: "white" }}>{isRecording ? "Stop" : "Start Voice Note"}</Text>
+          </TouchableOpacity>
+          {isRecording && <Text>Recording...</Text>}
+          {error && <Text style={{ color: "red" }}>{error}</Text>}
+        </View>
+      )}
+
+      {Platform.OS === 'web' && (
+        <View style={{ marginTop: 12 }}>
+          <Text style={{ color: "#666", fontSize: 12 }}>
+            Voice recording is available on mobile devices only
+          </Text>
+        </View>
+      )}
 
       <TouchableOpacity
         onPress={save}

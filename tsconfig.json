@@ -6,15 +6,32 @@
     "baseUrl": ".",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "types": ["react", "react-native"],
+    "types": [
+      "react",
+      "react-native"
+    ],
     "paths": {
-      "expo-module-scripts": ["node_modules/expo-module-scripts/index.js"],
-      "expo-module-scripts/*": ["node_modules/expo-module-scripts/*"],
+      "expo-module-scripts": [
+        "node_modules/expo-module-scripts/index.js"
+      ],
+      "expo-module-scripts/*": [
+        "node_modules/expo-module-scripts/*"
+      ],
       "expo-module-scripts/tsconfig.base": [
         "node_modules/expo-module-scripts/tsconfig.base.json"
       ]
     }
   },
-  "include": ["App.tsx", "src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+  "include": [
+    "App.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js"
+  ]
 }

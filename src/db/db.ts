@@ -195,3 +195,106 @@ export async function markSynced(ids: string[], table: "visits" | "followups") {
   const placeholders = ids.map(() => "?").join(",");
   await d.runAsync(`UPDATE ${table} SET synced = 1 WHERE id IN (${placeholders})`, ...ids);
 }
+
+// Additional methods for PastoralCare Pro integration
+export async function getUnsyncedVisits(): Promise<VisitRecord[]> {
+  const d = getDb();
+  return await d.getAllAsync<VisitRecord>("SELECT * FROM visits WHERE synced = 0");
+}
+
+export async function getUnsyncedFollowups(): Promise<any[]> {
+  const d = getDb();
+  return await d.getAllAsync("SELECT * FROM followups WHERE synced = 0");
+}
+
+export async function getUnsyncedVisitCount(): Promise<number> {
+  const d = getDb();
+  const row = await d.getFirstAsync<{ c: number }>("SELECT COUNT(*) as c FROM visits WHERE synced = 0");
+  return row?.c ?? 0;
+}
+
+export async function getUnsyncedFollowupCount(): Promise<number> {
+  const d = getDb();
+  const row = await d.getFirstAsync<{ c: number }>("SELECT COUNT(*) as c FROM followups WHERE synced = 0");
+  return row?.c ?? 0;
+}
+
+export async function markVisitAsSynced(visitId: string): Promise<void> {
+  const d = getDb();
+  await d.runAsync("UPDATE visits SET synced = 1 WHERE id = ?", visitId);
+}
+
+export async function markFollowupAsSynced(followupId: string): Promise<void> {
+  const d = getDb();
+  await d.runAsync("UPDATE followups SET synced = 1 WHERE id = ?", followupId);
+}
+
+export async function updateChurchesFromSync(churches: any[]): Promise<void> {
+  const d = getDb();
+  // Clear existing churches and insert new ones
+  await d.runAsync("DELETE FROM churches");
+  for (const church of churches) {
+    await d.runAsync(
+      "INSERT INTO churches (id, name) VALUES (?, ?)",
+      church.id,
+      church.name
+    );
+  }
+}
+
+export async function updateMembersFromSync(members: any[], churchId: string): Promise<void> {
+  const d = getDb();
+  // Clear existing members for this church and insert new ones
+  await d.runAsync("DELETE FROM members WHERE church_id = ?", churchId);
+  for (const member of members) {
+    await d.runAsync(
+      "INSERT INTO members (id, first_name, last_name, church_id, affiliation, discipleship_status) VALUES (?, ?, ?, ?, ?, ?)",
+      member.id,
+      member.first_name,
+      member.last_name,
+      member.church_id,
+      member.affiliation || 'member',
+      member.discipleship_status || 'active'
+    );
+  }
+}
+
+export async function getUserChurches(): Promise<any[]> {
+  const d = getDb();
+  // For now, return all churches. In production, this would filter by user permissions
+  return await d.getAllAsync("SELECT * FROM churches");
+}
+
+export async function updateLastSyncTimestamp(): Promise<void> {
+  // For now, this is a placeholder. In production, store in a settings table or local storage
+  console.log('Last sync updated:', new Date().toISOString());
+}
+
+export async function getLastSyncTimestamp(): Promise<Date | null> {
+  // Placeholder - return a mock timestamp
+  return new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+}
+
+export async function getAllChurches(): Promise<any[]> {
+  const d = getDb();
+  return await d.getAllAsync("SELECT * FROM churches ORDER BY name");
+}
+
+export async function getMembersByChurch(churchId: string): Promise<any[]> {
+  const d = getDb();
+  return await d.getAllAsync("SELECT * FROM members WHERE church_id = ? ORDER BY last_name, first_name", churchId);
+}
+
+export async function searchMembers(query: string, churchId?: string): Promise<any[]> {
+  const d = getDb();
+  let sql = "SELECT * FROM members WHERE (first_name LIKE ? OR last_name LIKE ?)";
+  const params: any[] = [`%${query}%`, `%${query}%`];
+  
+  if (churchId) {
+    sql += " AND church_id = ?";
+    params.push(churchId);
+  }
+  
+  sql += " ORDER BY last_name, first_name LIMIT 20";
+  return await d.getAllAsync(sql, ...params);
+}
